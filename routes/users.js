@@ -1,9 +1,9 @@
-var express = require("express");
+const express = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../database/usermodel");
 const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
-var router = express.Router();
+const router = express.Router();
 router.get("/", function (req, res, next) {
   res.send("W");
 });

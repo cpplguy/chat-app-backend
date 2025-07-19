@@ -18,11 +18,7 @@ const limit = rateLimit({
     res.status(429).json({error: "Too many requests. Take a quick 10 second break!"})
   }
 })
-app.use(cors({origin: function()){
-
-}
-
-  , credentials: true}));
+app.use(cors({origin: process.env.FRONTEND_URL, credentials: true }))
 app.use(cookieParser());
 app.use(express.json());
 //Database and such
