@@ -46,8 +46,8 @@ router.post(
   });
   res.cookie("auth", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "Lax",
+    secure: true,
+    sameSite: "none",
     maxAge: 1000 * 60 * 60 * 24,
   }).status(200).json({user: "logged in"});
     } catch (err) {
@@ -90,7 +90,7 @@ router.post("/login", async (req, res) => {
   res.cookie("auth", token, {
     httpOnly: true,
     secure: true,
-    sameSite: "None",
+    sameSite: "none",
     maxAge: 1000 * 60 * 60 * 24,
   }).status(200).json({user: "logged in"});;
 });
