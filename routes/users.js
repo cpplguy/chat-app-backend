@@ -8,8 +8,8 @@ router.get("/", function (req, res, next) {
   res.send("W");
 });
 router.get("/getNames", async (req, res) => {
-  const names = await User.find({})
-  res.json(names.map(item =>( {name: item.name})));
+  const names = await User.find({});
+  res.json(names.map((item) => ({ name: item.name })));
 });
 router.post(
   "/postUserInfo",
@@ -72,7 +72,7 @@ router.post("/login", async (req, res) => {
   if (!name || !password) {
     return res.sendStatus(400);
   }
-  const formattedName=name.trim().replace(/\s/g, "_").toLowerCase()
+  const formattedName = name.trim().replace(/\s/g, "_").toLowerCase();
   const inDB = await User.findOne({
     email: formattedName,
   });
@@ -87,12 +87,15 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ email: formattedName }, process.env.JWT, {
     expiresIn: "24h",
   });
-  res.cookie("auth", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24,
-  }).status(200).json({user: "logged in"});;
+  res
+    .cookie("auth", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24,
+    })
+    .status(200)
+    .json({ user: "logged in" });
 });
 router.get("/whoami", (req, res) => {
   const token = req.cookies?.auth;
@@ -106,5 +109,5 @@ router.get("/whoami", (req, res) => {
     console.log("Accessed whoami:  ", decoded.email);
     res.status(200).json({ email: decoded.email });
   });
-})
+});
 module.exports = router;
