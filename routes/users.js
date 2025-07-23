@@ -41,15 +41,18 @@ router.post(
     try {
       const userSave = await user.save();
       console.log(userSave);
-        const token = jwt.sign({ email: shavedName }, process.env.JWT, {
-    expiresIn: "24h",
-  });
-  res.cookie("auth", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24,
-  }).status(200).json({user: "logged in"});
+      const token = jwt.sign({ email: shavedName }, process.env.JWT, {
+        expiresIn: "24h",
+      });
+      res
+        .cookie("auth", token, {
+          httpOnly: true,
+          secure: process.env.STATUS === "development" ? false : true,
+          sameSite: process.env.STATUS === "development" ? "Lax" : "none",
+          maxAge: 1000 * 60 * 60 * 24,
+        })
+        .status(200)
+        .json({ user: "logged in" });
     } catch (err) {
       console.error(err);
     }
@@ -90,8 +93,8 @@ router.post("/login", async (req, res) => {
   res
     .cookie("auth", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.STATUS === "development" ? false : true,
+      sameSite: process.env.STATUS === "development" ? "Lax" : "none",
       maxAge: 1000 * 60 * 60 * 24,
     })
     .status(200)
