@@ -4,7 +4,7 @@ const User = require("../database/usermodel");
 const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-router.get("/", function (req, res, next) {
+router.get("/",  (req, res, next) => {
   res.send("W");
 });
 router.get("/getNames", async (req, res) => {
@@ -100,17 +100,5 @@ router.post("/login", async (req, res) => {
     .status(200)
     .json({ user: "logged in" });
 });
-router.get("/whoami", (req, res) => {
-  const token = req.cookies?.auth;
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  jwt.verify(token, process.env.JWT, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    console.log("Accessed whoami:  ", decoded.email);
-    res.status(200).json({ email: decoded.email });
-  });
-});
+/**/
 module.exports = router;

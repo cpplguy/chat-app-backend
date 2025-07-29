@@ -8,8 +8,6 @@ const jwt = require("jsonwebtoken");
 const { Server } = require("socket.io");
 const messageModel = require("../database/chatmodel.js");
 
-
-
 const port = normalizePort(process.env.PORT || "8080");
 app.set("port", port);
 
@@ -43,18 +41,17 @@ io.on("connection", async (socket) => {
   }
 
   const token = cookies.auth;
-  let decoded;
   let email;
   try {
-    decoded = jwt.verify(token, process.env.JWT);
+    const decoded = jwt.verify(token, process.env.JWT);
     socket.data.email = decoded.email;
-    email = socket.data.email
+    email = socket.data.email;
     console.log("User authenticated: ", email);
     const num = usersConnected.get(email) || 0;
-    const numAdded = num + 1
-    usersConnected.set(email, numAdded)
-    console.log("users connected:" , usersConnected)
-    io.emit("users connected", [...usersConnected.keys()])
+    const numAdded = num + 1;
+    usersConnected.set(email, numAdded);
+    console.log("users connected:", usersConnected);
+    io.emit("users connected", [...usersConnected.keys()]);
     socket.emit(
       "chat message",
       await messageModel.find({}).sort({ createdAt: 1 }).limit(20)
@@ -94,27 +91,29 @@ io.on("connection", async (socket) => {
     console.log("Invalid token: ", error.message);
     socket.disconnect();
   }
-  socket.on("request users connected" , () => {
+  socket.on("request users connected", () => {
     socket.emit("users connected", [...usersConnected.keys()]);
-  })
+  });
   socket.on("disconnect", () => {
     setTimeout(() => {
-    const count = (usersConnected.get(email) || 0) - 1
-    if(count > 0){
-      usersConnected.set(email, count)
-    }
-    else{
-      usersConnected.delete(email)
-    }
-    console.log("User disconnected: ", socket.id);
-    console.log("users connected:" , usersConnected)
-    io.emit("users connected", [...usersConnected.keys()])
-  }, 50)
+      const count = (usersConnected.get(email) || 0) - 1;
+      if (count > 0) {
+        usersConnected.set(email, count);
+      } else {
+        usersConnected.delete(email);
+      }
+      console.log("User disconnected: ", socket.id);
+      console.log("users connected:", usersConnected);
+      io.emit("users connected", [...usersConnected.keys()]);
+    }, 50);
   });
 });
 
 server.listen(port, () => {
-  console.log("Server listening on " + port, `origin: ${process.env.FRONTEND_URL}`);
+  console.log(
+    "Server listening on " + port,
+    `origin: ${process.env.FRONTEND_URL}`
+  );
 });
 server.on("error", onError);
 server.on("listening", onListening);
