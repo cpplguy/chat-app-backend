@@ -4,7 +4,7 @@ const User = require("../database/usermodel");
 const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-router.get("/",  (req, res, next) => {
+router.get("/", (req, res, next) => {
   res.send("W");
 });
 router.get("/getNames", async (req, res) => {
@@ -37,7 +37,13 @@ router.post(
     const shavedName = info.name.trim().replace(/\s/g, "_").toLowerCase();
     const salt = await bcrypt.genSalt(10);
     const encryptedPassword = await bcrypt.hash(info.password, salt);
-    const user = new User({ email: shavedName, password: encryptedPassword });
+    const user = new User({
+      email: shavedName,
+      password: encryptedPassword,
+      color: `rgb(${Math.random() * 255},${Math.random() * 255},${
+        Math.random() * 255
+      })`,
+    });
     try {
       const userSave = await user.save();
       console.log(userSave);

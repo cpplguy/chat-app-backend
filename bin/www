@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const app = require("../app");
 const debug = require("debug")("server:server");
 const http = require("http");
@@ -7,10 +6,17 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const { Server } = require("socket.io");
 const messageModel = require("../database/chatmodel.js");
-
+const userModel = require("../database/usermodel.js");
 const port = normalizePort(process.env.PORT || "8080");
 app.set("port", port);
-
+async function addColors(arr) {
+  return await Promise.all(
+    arr.map(async (item) => {
+      const user = await userModel.findOne({ email: item.email });
+      return { ...item.toObject(), color: user.color ?? "lightgray" };
+    })
+  );
+}
 function escapeHtml(str) {
   if (typeof str !== "string") return str;
 
@@ -30,85 +36,150 @@ const io = new Server(server, {
   },
 });
 const usersConnected = new Map();
+function sendUsersConnectedToRoom() {
+  const usersOnlineMap = new Map();
+  for (let x of [...usersConnected.keys()]) {
+    const id = [...usersConnected.get(x).roomId];
+    for (let idd of id) {
+      if (!usersOnlineMap.has(idd)) {
+        usersOnlineMap.set(idd, new Set());
+      }
+      usersOnlineMap.get(idd).add(x);
+    }
+  }
+  for (let [x, y] of usersOnlineMap.entries()) {
+    io.to(x).emit("users connected", [...y]);
+  }
+  return 0;
+}
+
 io.on("connection", async (socket) => {
-  const handshake = socket.handshake;
-  console.log("New connection from: ", handshake.address);
-  const cookies = cookie.parse(handshake.headers.cookie || "");
-  if (!cookies.auth) {
-    console.log("Unauthorized connection attempt");
+  let email;
+  try {
+    const handshake = socket.handshake;
+    console.log("New connection from: ", handshake.address);
+    const cookies = cookie.parse(handshake.headers.cookie || "");
+    const token = cookies.auth;
+    if (!token) {
+      console.log("Unauthorized connection attempt");
+      socket.disconnect();
+      return;
+    }
+    const decoded = jwt.verify(token, process.env.JWT);
+    socket.data.email = decoded.email;
+    email = socket.data.email;
+    if (!email) {
+      throw new Error("No email detected. Disconnecting");
+    }
+    console.log("User authenticated: ", email);
+
+    console.log("users connected:", usersConnected);
+  } catch (err) {
+    console.error(err);
     socket.disconnect();
     return;
   }
 
-  const token = cookies.auth;
-  let email;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT);
-    socket.data.email = decoded.email;
-    email = socket.data.email;
-    console.log("User authenticated: ", email);
-    const num = usersConnected.get(email) || 0;
-    const numAdded = num + 1;
+  async function joinRoomHandler(roomId) {
+    roomId = String(roomId).toLowerCase();
+    socket.join(roomId);
+    const num = usersConnected.get(email)?.numOfConnected || 0;
+    const set = usersConnected.get(email)?.roomId || new Set();
+    const numAdded = {
+      numOfConnected: num + 1,
+      roomId: new Set([...set, roomId]),
+    };
     usersConnected.set(email, numAdded);
-    console.log("users connected:", usersConnected);
-    io.emit("users connected", [...usersConnected.keys()]);
+    socket.data.roomId = roomId;
     socket.emit(
       "chat message",
-      await messageModel.find({}).sort({ createdAt: 1 }).limit(20)
-    );
-    socket.on("chat message", async (msg) => {
-      if (!msg || msg.trim() === "" || msg.trim().length > 70) {
-        console.log("Bad message, ignoring.");
-        return;
-      }
-
-      const newMessage = new messageModel({
-        email: email,
-        text: escapeHtml(msg.trim()),
-      });
-
-      await newMessage.save();
-      const amount = await messageModel.countDocuments();
-      if (amount > 20) {
-        const toDelete = await messageModel
-          .find()
+      await addColors(
+        await messageModel
+          .find({ roomId: socket.data.roomId })
           .sort({ createdAt: 1 })
-          .limit(amount - 20);
-        await messageModel.deleteMany({
-          _id: { $in: toDelete.map((doc) => doc._id) },
-        });
-        console.log("Deleted old messages.");
-      }
-
-      const message = await messageModel
-        .find({})
-        .sort({ createdAt: -1 })
-        .limit(20);
-      console.log(message);
-      io.emit("chat message", message.reverse());
-    });
-  } catch (error) {
-    console.log("Invalid token: ", error.message);
-    socket.disconnect();
+          .limit(20)
+      )
+    );
+    io.emit("users online", [...usersConnected.keys()].length);
+    sendUsersConnectedToRoom();
   }
-  socket.on("request users connected", () => {
-    socket.emit("users connected", [...usersConnected.keys()]);
-  });
-  socket.on("disconnect", () => {
-    setTimeout(() => {
-      const count = (usersConnected.get(email) || 0) - 1;
-      if (count > 0) {
-        usersConnected.set(email, count);
-      } else {
-        usersConnected.delete(email);
-      }
-      console.log("User disconnected: ", socket.id);
-      console.log("users connected:", usersConnected);
-      io.emit("users connected", [...usersConnected.keys()]);
-    }, 50);
-  });
-});
+  async function chatMessageHandler(msg) {
+    const roomId = socket.data.roomId;
+    if (!roomId) return console.log("No roomId yet.");
+    if (!msg || msg.trim() === "" || msg.trim().length > 70) {
+      console.log("Bad message, ignoring.");
+      return;
+    }
 
+    const newMessage = new messageModel({
+      email: email,
+      text: escapeHtml(msg.trim()),
+      roomId: roomId || "main",
+    });
+
+    await newMessage.save();
+    const amount = await messageModel.countDocuments({ roomId: roomId });
+    if (amount > 20) {
+      const toDelete = await messageModel
+        .find({ roomId: roomId })
+        .sort({ createdAt: 1 })
+        .limit(amount - 20);
+      await messageModel.deleteMany({
+        _id: { $in: toDelete.map((doc) => doc._id) },
+      });
+      console.log("Deleted old messages.");
+    }
+
+    const message = await messageModel
+      .find({ roomId: roomId })
+      .sort({ createdAt: -1 })
+      .limit(20);
+    const messages = await addColors(message);
+    console.log(messages);
+    io.to(roomId).emit("chat message", messages.reverse());
+  }
+  function requestUsersOnlineHandler() {
+    const roomId = socket.data.roomId;
+    if (!roomId) return console.log("No room Id yet.");
+    socket.emit(
+      "users connected",
+      [...usersConnected.keys()].filter((item) =>
+        (usersConnected.get(item)?.roomId || new Set(["main"])).has(roomId)
+      )
+    );
+  }
+  function disconnectHandler() {
+    socketCleanUp(socket);
+    const count = (usersConnected.get(email)?.numOfConnected || 0) - 1;
+    if (count > 0) {
+      usersConnected.set(email, {
+        ...usersConnected.get(email),
+        numOfConnected: count,
+      });
+    } else {
+      usersConnected.delete(email);
+    }
+    console.log("User disconnected: ", socket.id);
+    console.log("users connected:", usersConnected);
+    sendUsersConnectedToRoom();
+    io.emit("users online", [...usersConnected.keys()].length);
+  }
+
+  function socketCleanUp(socket) {
+    socket.off("join room", joinRoomHandler);
+    socket.off("chat message", chatMessageHandler);
+    socket.off("request users connected", requestUsersOnlineHandler);
+  }
+
+  socket.on("join room", joinRoomHandler);
+
+  //sends user info to the specific room
+
+  socket.on("chat message", chatMessageHandler);
+  socket.on("request users connected", requestUsersOnlineHandler);
+
+  socket.on("disconnect", disconnectHandler);
+});
 server.listen(port, () => {
   console.log(
     "Server listening on " + port,

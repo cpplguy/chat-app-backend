@@ -1,6 +1,20 @@
 const mongoose = require("mongoose");
 const schema = new mongoose.Schema({
-    email: String,
-    password: String
-})
+  email: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+    default: "lightgray",
+  },
+  banned: {
+    type: Boolean,
+    default: false,
+  },
+});
 module.exports = mongoose.model("User", schema);
