@@ -57,14 +57,14 @@ io.on("connection", async (socket) => {
   let email;
   try {
     const handshake = socket.handshake;
-    console.log("New connection from: ", handshake.address);
     const cookies = cookie.parse(handshake.headers.cookie || "");
-    if (!cookies) {
+    const token = cookies.auth;
+    console.log("New connection from: ", handshake.address, "cookie: ", token);
+    if (!token) {
       console.log("Unauthorized connection attempt");
       socket.disconnect();
       return;
     }
-    const token = cookies.auth;
     const decoded = jwt.verify(token, process.env.JWT);
     socket.data.email = decoded.email;
     email = socket.data.email;
@@ -75,7 +75,7 @@ io.on("connection", async (socket) => {
 
     console.log("users connected:", usersConnected);
   } catch (err) {
-    console.error(err);
+    console.error("Error occurred. Error: ",err);
     socket.disconnect();
     return;
   }
