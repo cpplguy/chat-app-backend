@@ -56,6 +56,7 @@ router.post(
           secure: process.env.STATUS === "development" ? false : true,
           sameSite: process.env.STATUS === "development" ? "Lax" : "none",
           maxAge: 1000 * 60 * 60 * 24,
+          path: "/",
         })
         .status(200)
         .json({ user: "logged in" });
@@ -102,6 +103,7 @@ router.post("/login", async (req, res) => {
       secure: process.env.STATUS === "development" ? false : true,
       sameSite: process.env.STATUS === "development" ? "Lax" : "none",
       maxAge: 1000 * 60 * 60 * 24,
+      path: "/",
     })
     .status(200)
     .json({ user: "logged in" });
