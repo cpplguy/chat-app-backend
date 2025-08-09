@@ -59,7 +59,7 @@ io.on("connection", async (socket) => {
     const handshake = socket.handshake;
     const cookies = cookie.parse(handshake.headers.cookie || "");
     const token = cookies.auth;
-    console.log("New connection from: ", handshake.address, "headers", handshake.headers);
+    console.log("New connection from: ", handshake.address, "cookies: ", token);
     if (!token) {
       console.log("Unauthorized connection attempt");
       socket.disconnect();
