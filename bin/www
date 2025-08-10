@@ -64,7 +64,7 @@ io.on("connection", async (socket) => {
     const token = cookies.auth;
     
     if (!token) {
-      console.log("Unauthorized connection attempt");
+      console.log("Unauthorized connection attempt", token);
       socket.disconnect();
       return;
     }
