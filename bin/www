@@ -57,7 +57,7 @@ io.on("connection", async (socket) => {
   let email;
   try {
     const handshake = socket.handshake;
-    const cookies = cookie.parse(handshake.headers.cookie || "");
+    const cookies = cookie.parse(handshake.auth || "");
     const token = cookies.auth;
     console.log("New connection from: ", handshake.address, "cookies: ", token);
     if (!token) {

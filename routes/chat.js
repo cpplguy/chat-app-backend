@@ -15,10 +15,11 @@ router.get("/whoami", (req, res) => {
         return res.status(401).json({ error: "Unauthorized" });
       }
       console.log("Accessed whoami:  ", decoded.email);
-      res.status(200).json({ email: decoded.email });
+      res.status(200).json({ email: decoded.email, token: token });
     });
   } catch (err) {
     console.error(err);
+    res.status(500).json({error: err})
   }
 });
 module.exports = router;
