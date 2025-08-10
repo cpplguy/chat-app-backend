@@ -60,8 +60,7 @@ io.on("connection", async (socket) => {
     console.log("New connection from: ", handshake.address, "cookies: ", handshake.auth);
     if(!handshake.auth) throw new Error("No authentication given.")
     console.log(handshake.auth)
-    const cookies = cookie.parse(handshake.auth.auth || "");
-    const token = cookies.auth;
+    const token = cookie.parse(handshake.auth.auth || "");
     
     if (!token) {
       console.log("Unauthorized connection attempt", token);
