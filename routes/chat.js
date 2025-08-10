@@ -15,7 +15,7 @@ router.get("/whoami", (req, res) => {
         return res.status(401).json({ error: "Unauthorized" });
       }
       console.log("Accessed whoami:  ", decoded.email);
-      res.status(200).json({ email: decoded.email, token: token });
+      res.status(200).json({ email: decoded.email, token: req.cookies });
     });
   } catch (err) {
     console.error(err);
