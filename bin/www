@@ -57,9 +57,11 @@ io.on("connection", async (socket) => {
   let email;
   try {
     const handshake = socket.handshake;
+    console.log("New connection from: ", handshake.address, "cookies: ", handshake.auth);
+    if(!handshake.auth) throw new Error("No authentication given.")
     const cookies = cookie.parse(handshake.auth || "");
     const token = cookies.auth;
-    console.log("New connection from: ", handshake.address, "cookies: ", token);
+    
     if (!token) {
       console.log("Unauthorized connection attempt");
       socket.disconnect();
