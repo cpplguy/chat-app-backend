@@ -61,7 +61,6 @@ io.on("connection", async (socket) => {
     if(!handshake.auth) throw new Error("No authentication given.")
     console.log(handshake.auth)
     const token = handshake.auth.auth || "";
-    console.log(token);
     if (!token) {
       console.log("Unauthorized connection attempt");
       socket.disconnect();

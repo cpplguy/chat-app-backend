@@ -14,14 +14,19 @@ const chatRouter = require("./routes/chat.js");
 const app = express();
 const limit = rateLimit({
   windowMs: 10 * 1000,
-  max: 3,
+  max: 5,
   handler: (req, res, next) => {
     res
       .status(429)
       .json({ error: "Too many requests. Take a quick 10 second break!" });
   },
 });
-app.use(["/api/users", "/secret"],limit);
+app.use((req, res, next) => {
+  if(!req.originalUrl.startsWith("/admin")){
+    return limit(req, res, next);
+  }
+  return next();
+});
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.options(
   "*",
@@ -37,7 +42,7 @@ app.use(express.json());
 DBConnect();
 
 // end Database
-
+app.set("trust proxy", 1);
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 app.use(logger("dev"));
