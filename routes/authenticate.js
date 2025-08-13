@@ -1,4 +1,3 @@
-const express = require("express");
 const jwt = require("jsonwebtoken");
 const authenticate = (req, res, next) => {
     const token = req.cookies?.auth;
@@ -11,7 +10,7 @@ const authenticate = (req, res, next) => {
                 
             }
             req.user = decoded;
-            next();
+            return next();
         })
 }
 module.exports = authenticate;

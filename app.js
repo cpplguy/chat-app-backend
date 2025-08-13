@@ -12,9 +12,10 @@ const DBConnect = require("./database/db");
 const authRouter = require("./routes/auth");
 const chatRouter = require("./routes/chat.js");
 const app = express();
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 const limit = rateLimit({
   windowMs: 10 * 1000,
-  max: 5,
+  max: 10,
   handler: (req, res, next) => {
     res
       .status(429)
@@ -22,12 +23,12 @@ const limit = rateLimit({
   },
 });
 app.use((req, res, next) => {
-  if(!req.originalUrl.startsWith("/admin")){
+  if(!req.originalUrl.startsWith("/admin") && req.method !== "GET" && req.path !== "/api/auth"){
     return limit(req, res, next);
   }
   return next();
 });
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+
 app.options(
   "*",
   cors({
@@ -37,11 +38,11 @@ app.options(
 );
 app.use(cookieParser());
 app.use(express.json());
-//Database and such
 
-DBConnect();
-
-// end Database
+//<Database and such>
+  DBConnect();
+//</Database and such>
+//<App setup>
 app.set("trust proxy", 1);
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
@@ -53,7 +54,8 @@ app.use("/api/chat", chatRouter);
 app.use("/api", indexRouter);
 app.use("/secret", teapot);
 app.use("/api/auth", authRouter);
-
+//</App setup>
+//<error stuff (came with express generator)>
 app.use((req, res, next) => {
   next(createError(404));
 });
@@ -64,5 +66,5 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.render("error");
 });
-
+//</erorr stuff>
 module.exports = app;

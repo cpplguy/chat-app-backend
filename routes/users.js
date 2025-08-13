@@ -40,9 +40,12 @@ router.post(
     const user = new User({
       email: shavedName,
       password: encryptedPassword,
-      color: `rgb(${Math.random() * 255},${Math.random() * 255},${
-        Math.random() * 255
-      })`,
+      color:
+        shavedName === "admin@admin.com"
+          ? "rainbow"
+          : `rgb(${Math.random() * 255},${Math.random() * 255},${
+              Math.random() * 255
+            })`,
     });
     try {
       const userSave = await user.save();
@@ -108,5 +111,4 @@ router.post("/login", async (req, res) => {
     .status(200)
     .json({ user: "logged in" });
 });
-/**/
 module.exports = router;

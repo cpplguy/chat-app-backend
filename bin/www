@@ -9,6 +9,7 @@ const messageModel = require("../database/chatmodel.js");
 const userModel = require("../database/usermodel.js");
 const port = normalizePort(process.env.PORT || "8080");
 app.set("port", port);
+//functions
 async function addColors(arr) {
   return await Promise.all(
     arr.map(async (item) => {
@@ -54,6 +55,7 @@ function sendUsersConnectedToRoom() {
 }
 
 io.on("connection", async (socket) => {
+  // <validating user
   let email;
   try {
     const handshake = socket.handshake;
@@ -80,7 +82,7 @@ io.on("connection", async (socket) => {
     socket.disconnect();
     return;
   }
-
+//>
   async function joinRoomHandler(roomId) {
     roomId = String(roomId).toLowerCase();
     socket.join(roomId);
