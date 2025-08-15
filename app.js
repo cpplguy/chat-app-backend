@@ -8,6 +8,7 @@ const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 const teapot = require("./routes/teapot");
 const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
 const DBConnect = require("./database/db");
 const authRouter = require("./routes/auth");
 const chatRouter = require("./routes/chat.js");
@@ -40,6 +41,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 //<Database and such>
+  app.use(mongoSanitize());
   DBConnect();
 //</Database and such>
 //<App setup>

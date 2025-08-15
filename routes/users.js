@@ -62,7 +62,7 @@ router.post(
           path: "/",
         })
         .status(200)
-        .json({ user: "logged in" });
+        .json({ user: shavedName});
     } catch (err) {
       console.error(err);
     }
@@ -109,6 +109,6 @@ router.post("/login", async (req, res) => {
       path: "/",
     })
     .status(200)
-    .json({ user: "logged in" });
+    .json({ user: formattedName });
 });
 module.exports = router;
