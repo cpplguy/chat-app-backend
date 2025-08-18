@@ -23,7 +23,8 @@ router.post("/chatroom", (req, res) => {
     res.status(500).json({error: err})
   }
 });
-module.exports = router;
+
 **
 plan on deleting this (made a central route for tokens and user data in auth.js)
 */
+module.exports = router;
