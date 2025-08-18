@@ -59,7 +59,7 @@ io.on("connection", async (socket) => {
   let email;
   try {
     const handshake = socket.handshake;
-    console.log("New connection from: ", handshake.address, "cookies: ", handshake.auth);
+    console.log("New connection from: ", handshake.address, "cookies: ", Boolean(handshake.auth));
     if(!handshake.auth) throw new Error("No authentication given.")
     console.log(handshake.auth)
     const token = handshake.auth.auth || "";

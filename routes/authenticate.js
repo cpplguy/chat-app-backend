@@ -10,6 +10,7 @@ const authenticate = (req, res, next) => {
                 
             }
             req.user = decoded;
+            req.token = token;
             return next();
         })
 }

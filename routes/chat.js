@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 router.post("/chatroom", (req, res) => {
   res.send("route hit");
 });
-router.get("/whoami", (req, res) => {
+
+/*router.get("/whoami", (req, res) => {
   try {
     const token = req.cookies?.auth;
     if (!token) {
@@ -23,3 +24,6 @@ router.get("/whoami", (req, res) => {
   }
 });
 module.exports = router;
+**
+plan on deleting this (made a central route for tokens and user data in auth.js)
+*/
