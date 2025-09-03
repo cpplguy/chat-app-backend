@@ -5,6 +5,6 @@ const warmStart = () => {setInterval(async () => {
   } catch (err) {
     console.error("warmstart error: ", err);
   }
-}, 1000 * 60 * 10);
+}, 1000 * 60 * 5); //5 min
 };
 process.env.STATUS !== "development" && warmStart();

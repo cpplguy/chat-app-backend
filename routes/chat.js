@@ -1,30 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken");
 router.post("/chatroom", (req, res) => {
   res.send("route hit");
 });
-
-/*router.get("/whoami", (req, res) => {
-  try {
-    const token = req.cookies?.auth;
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    jwt.verify(token, process.env.JWT, (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      console.log("Accessed whoami:  ", decoded.email);
-      res.status(200).json({ email: decoded.email, token: req.cookies });
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({error: err})
-  }
-});
-
-**
-plan on deleting this (made a central route for tokens and user data in auth.js)
-*/
 module.exports = router;

@@ -12,6 +12,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const DBConnect = require("./database/db");
 const authRouter = require("./routes/auth");
 const chatRouter = require("./routes/chat.js");
+const adminRouter = require("./routes/admin.js");
 const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 const limit = rateLimit({
@@ -56,6 +57,7 @@ app.use("/api/chat", chatRouter);
 app.use("/api", indexRouter);
 app.use("/secret", teapot);
 app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
 //</App setup>
 //<error stuff (came with express generator)>
 app.use((req, res, next) => {

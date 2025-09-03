@@ -12,6 +12,10 @@ const schema = new mongoose.Schema({
     type: String,
     default: "lightgray",
   },
+  ip:{
+    type:String,
+    default:"none",
+  },
   banned: {
     type: Boolean,
     default: false,

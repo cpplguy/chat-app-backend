@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const User = require("../database/usermodel");
 const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
@@ -46,6 +47,7 @@ router.post(
           : `rgb(${Math.random() * 255},${Math.random() * 255},${
               Math.random() * 255
             })`,
+      ip: crypto.createHash("sha256").update(req.ip).digest("hex"),
     });
     try {
       const userSave = await user.save();
@@ -61,8 +63,8 @@ router.post(
           maxAge: 1000 * 60 * 60 * 24,
           path: "/",
         })
-        .status(200)
-        .json({ user: shavedName});
+        .status(201)
+        .json({ user: shavedName, token: token });
     } catch (err) {
       console.error(err);
     }
@@ -96,7 +98,8 @@ router.post("/login", async (req, res) => {
   if (!compare) {
     return res.sendStatus(401);
   }
-
+  inDB.ip = crypto.createHash("sha256").update(req.ip).digest("hex");
+  await inDB.save();
   const token = jwt.sign({ email: formattedName }, process.env.JWT, {
     expiresIn: "24h",
   });
@@ -109,6 +112,6 @@ router.post("/login", async (req, res) => {
       path: "/",
     })
     .status(200)
-    .json({ user: formattedName });
+    .json({ user: formattedName, token: token });
 });
 module.exports = router;
