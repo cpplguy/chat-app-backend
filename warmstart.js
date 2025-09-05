@@ -7,4 +7,4 @@ const warmStart = () => {setInterval(async () => {
   }
 }, 1000 * 60 * 5); //5 min
 };
-process.env.STATUS !== "development" && warmStart();
+warmStart();

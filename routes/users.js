@@ -12,6 +12,20 @@ router.get("/getNames", async (req, res) => {
   const names = await User.find({});
   res.json(names.map((item) => ({ name: item.name })));
 });
+router.delete("/logout", (req, res) => {
+  try{
+  res.clearCookie("auth", {
+      httpOnly: true,
+      secure: process.env.STATUS === "development" ? false : true,
+      sameSite: process.env.STATUS === "development" ? "Lax" : "none",
+      path: "/",
+    });
+  return res.sendStatus(200);
+  }catch(err){
+    console.log(err);
+    return res.status(400).json({error: err});
+  }
+})
 router.post(
   "/postUserInfo",
   body("name")
