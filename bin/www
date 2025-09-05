@@ -109,7 +109,7 @@ io.on("connection", async (socket) => {
   async function chatMessageHandler(msg) {
     const roomId = socket.data.roomId;
     if (!roomId) return console.log("No roomId yet.");
-    if (!msg || msg.trim() === "" || msg.trim().length > 70) {
+    if (!msg || msg.trim() === "" || msg.trim().length > 100) {
       console.log("Bad message, ignoring.");
       return;
     }
