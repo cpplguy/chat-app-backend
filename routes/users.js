@@ -41,15 +41,16 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const info = req.body;
-    if (!info.name || !info.name.match(/^\S+@\S+\.\S+$/)) {
+    if (!info.name) {
       return res.status(400);
     }
-    const inDB = await User.findOne({ email: info.name.replace(/\s/g, "_") });
+    const shavedName = info.name.trim().toLowerCase();
+    const inDB = await User.findOne({ email: shavedName });
     if (inDB) {
       res.sendStatus(409);
       return;
     }
-    const shavedName = info.name.trim().replace(/\s/g, "_").toLowerCase();
+    
     const salt = await bcrypt.genSalt(10);
     const encryptedPassword = await bcrypt.hash(info.password, salt);
     const user = new User({
@@ -101,7 +102,7 @@ router.post("/login", async (req, res) => {
   if (!name || !password) {
     return res.sendStatus(400);
   }
-  const formattedName = name.trim().replace(/\s/g, "_").toLowerCase();
+  const formattedName = name.trim().toLowerCase();
   const inDB = await User.findOne({
     email: formattedName,
   });
