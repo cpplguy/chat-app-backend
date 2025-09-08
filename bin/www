@@ -116,7 +116,7 @@ io.on("connection", async (socket) => {
 
     const newMessage = new messageModel({
       email: email,
-      text: escapeHtml(msg.trim().replace(/:bypass/gi, "")),
+      text: escapeHtml(msg.trim().replace(/:bypass/gi, "")) || " ",
       roomId: roomId || "main",
     });
 
