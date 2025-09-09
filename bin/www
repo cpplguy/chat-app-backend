@@ -13,8 +13,8 @@ app.set("port", port);
 async function addColors(arr) {
   return await Promise.all(
     arr.map(async (item) => {
-      const user = await userModel.findOne({ email: item.email });
-      return { ...item.toObject(), color: user.color ?? "lightgray" };
+      const user = await userModel.findOne({ email: item.email }) || 0;
+      return { ...item.toObject(), color: user?.color || "lightgray" };
     })
   );
 }
