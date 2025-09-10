@@ -100,7 +100,7 @@ io.on("connection", async (socket) => {
         await messageModel
           .find({ roomId: socket.data.roomId })
           .sort({ createdAt: 1 })
-          .limit(roomId === "main" ? 100 : 20)
+          .limit(70)
       )
     );
     io.emit("users online", [...usersConnected.keys()].length);
@@ -122,11 +122,11 @@ io.on("connection", async (socket) => {
 
     await newMessage.save();
     const amount = await messageModel.countDocuments({ roomId: roomId });
-    if ((amount > 20 && roomId !== "main") || amount > 100) {
+    if ((amount > 70)) {
       const toDelete = await messageModel
         .find({ roomId: roomId })
         .sort({ createdAt: 1 })
-        .limit(amount - (roomId === "main" ? 100 : 20));
+        .limit(amount - 70);
       await messageModel.deleteMany({
         _id: { $in: toDelete.map((doc) => doc._id) },
       });
@@ -136,7 +136,7 @@ io.on("connection", async (socket) => {
     const message = await messageModel
       .find({ roomId: roomId })
       .sort({ createdAt: 1 })
-      .limit(roomId === "main" ? 100 : 20);
+      .limit(70);
     const messages = await addColors(message);
     console.log(messages);
     io.to(roomId).emit("chat message", messages);
