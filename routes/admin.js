@@ -62,11 +62,6 @@ router.patch("/users/ban", async (req, res) => {
     user.banned = true;
     user.bannedReason = bannedMessage;
     await user.save();
-    const ipBan = new bannedIps({
-      ip: user.ip,
-      bannedReason: bannedMessage,
-    });
-    await ipBan.save();
     return res.status(200).json({ message: "User banned successfully" });
   } catch (err) {
     console.error("Error banning user: ", err);
