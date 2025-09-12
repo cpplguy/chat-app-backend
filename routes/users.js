@@ -75,7 +75,7 @@ router.post(
           httpOnly: true,
           secure: process.env.STATUS === "development" ? false : true,
           sameSite: process.env.STATUS === "development" ? "Lax" : "none",
-          maxAge: 1000 * 60 * 60 * 24,
+          maxAge: 1000 * 60 * 60 * 100 ,//100 hours
           path: "/",
         })
         .status(201)
@@ -123,7 +123,7 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: process.env.STATUS === "development" ? false : true,
       sameSite: process.env.STATUS === "development" ? "Lax" : "none",
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 1000 * 60 * 60 * 100 ,// 100 hours
       path: "/",
     })
     .status(200)
