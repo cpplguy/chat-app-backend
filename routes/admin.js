@@ -41,7 +41,7 @@ router.delete("/users/delete", async (req, res) => {
 
   try {
     await userToDelete.deleteOne();
-    console.log("User deleted successfully: ", user.email);
+    console.log("User deleted successfully: ", userToDelete.email);
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     console.error("Error deleting user: ", err);
