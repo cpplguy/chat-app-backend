@@ -97,7 +97,8 @@ router.get("/getEverything", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  console.log(await User.find({}));
+  //DELETE AFTER PRODUCTON
+  console.log("ip address:",req.ip);
   const { name, password } = req.body;
   if (!name || !password) {
     return res.sendStatus(400);
@@ -128,5 +129,7 @@ router.post("/login", async (req, res) => {
     })
     .status(200)
     .json({ user: formattedName, token: token });
+    
+    
 });
 module.exports = router;

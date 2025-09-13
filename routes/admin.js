@@ -59,6 +59,12 @@ router.patch("/users/ban", async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
   try {
+    if (user.banned) {
+      user.banned = false;
+      user.bannedReason = "";
+      await user.save();
+      return res.status(200).json({ message: "User unbanned successfully" });
+    }
     user.banned = true;
     user.bannedReason = bannedMessage;
     await user.save();
