@@ -6,13 +6,14 @@ const jwt = require("jsonwebtoken");
 const { Server } = require("socket.io");
 const messageModel = require("../database/chatmodel.js");
 const userModel = require("../database/usermodel.js");
+const bannedIps = require("../database/bannedips.js");
 const port = normalizePort(process.env.PORT || "8080");
 app.set("port", port);
 //functions
 async function addColors(arr) {
   return await Promise.all(
     arr.map(async (item) => {
-      const user = await userModel.findOne({ email: item.email }) || 0;
+      const user = (await userModel.findOne({ email: item.email })) || 0;
       return { ...item.toObject(), color: user?.color || "lightgray" };
     })
   );
@@ -35,6 +36,22 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+function checkIfBanned(email) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await userModel.findOne({ email: email });
+      const isIpBanned = await bannedIps.findOne({ ip: user.ip });
+      if (user.banned || isIpBanned?.banned) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 const usersConnected = new Map();
 function sendUsersConnectedToRoom() {
   const usersOnlineMap = new Map();
@@ -50,7 +67,6 @@ function sendUsersConnectedToRoom() {
   for (let [x, y] of usersOnlineMap.entries()) {
     io.to(x).emit("users connected", [...y]);
   }
-  return 0;
 }
 
 io.on("connection", async (socket) => {
@@ -58,9 +74,14 @@ io.on("connection", async (socket) => {
   let email;
   try {
     const handshake = socket.handshake;
-    console.log("New connection from: ", handshake.address, "cookies: ", Boolean(handshake.auth));
-    if(!handshake.auth) throw new Error("No authentication given.")
-    console.log(handshake.auth)
+    console.log(
+      "New connection from: ",
+      handshake.address,
+      "cookies: ",
+      !!handshake.auth
+    );
+    if (!handshake.auth) throw new Error("No authentication given.");
+    console.log(handshake.auth);
     const token = handshake.auth.auth || "";
     if (!token) {
       console.log("Unauthorized connection attempt");
@@ -73,15 +94,20 @@ io.on("connection", async (socket) => {
     if (!email) {
       throw new Error("No email detected. Disconnecting");
     }
+    const isBanned = await checkIfBanned(email);
+    if (isBanned) {
+      console.log("Banned user tried to connect: ", email);
+      return socket.disconnect();
+    }
     console.log("User authenticated: ", email);
 
     console.log("users connected:", usersConnected);
   } catch (err) {
-    console.error("Error occurred. Error: ",err);
+    console.error("Error occurred. Error: ", err);
     socket.disconnect();
     return;
   }
-//>
+  //>
   async function joinRoomHandler(roomId) {
     roomId = String(roomId).toLowerCase();
     socket.join(roomId);
@@ -108,7 +134,10 @@ io.on("connection", async (socket) => {
   async function chatMessageHandler(msg) {
     const roomId = socket.data.roomId;
     if (!roomId) return console.log("No roomId yet.");
-    if ((!msg || msg.trim() === "" || msg.trim().length > 100) && !(/:bypass/i.test(msg) || msg.match(/image\((.*?)\)/i))) {
+    if (
+      (!msg || msg.trim() === "" || msg.trim().length > 100) &&
+      !(/:bypass/i.test(msg) || msg.match(/image\((.*?)\)/i))
+    ) {
       console.log("Bad message, ignoring.");
       return;
     }
@@ -121,7 +150,7 @@ io.on("connection", async (socket) => {
 
     await newMessage.save();
     const amount = await messageModel.countDocuments({ roomId: roomId });
-    if ((amount > 70)) {
+    if (amount > 70) {
       const toDelete = await messageModel
         .find({ roomId: roomId })
         .sort({ createdAt: 1 })

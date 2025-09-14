@@ -1,5 +1,5 @@
 const userModel = require("../database/usermodel.js");
-const bannedIps = require("../database/bannedIps.js");
+const bannedIps = require("../database/bannedips.js");
 const crypto = require("crypto");
 const bannedAuthenticate = async (req, res, next) => {
   const hashedIp = crypto.createHash("sha256").update(req.ip).digest("hex");

@@ -2,7 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const router = express.Router();
 const userModel = require("../database/usermodel.js");
-const bannedIps = require("../database/bannedIps.js");
+const bannedIps = require("../database/bannedips.js");
 const authenticate = require("./authenticate.js");
 const adminAuthenticate = (req, res, next) => {
   if (!req.isAdmin) {
