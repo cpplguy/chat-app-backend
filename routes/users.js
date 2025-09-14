@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const userModel = require("../database/usermodel");
+const User = require("../database/usermodel");
 const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
@@ -11,10 +11,10 @@ router.get("/", (req, res, next) => {
 
 async function filterUsernames() {
   const userSet = new Set();
-  const users = await usermodel.find({}).lean();
+  const users = await User.find({}).lean();
   for (const user of users) {
     if (userSet.has(user.email)) {
-      await usermodel.deleteOne({ _id: user._id });
+      await userModel.deleteOne({ _id: user._id });
       continue;
     }
     userSet.add(user.email);
