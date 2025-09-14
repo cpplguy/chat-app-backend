@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const User = require("../database/usermodel");
+const userModel = require("../database/usermodel");
 const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
