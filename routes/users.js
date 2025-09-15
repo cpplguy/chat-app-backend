@@ -11,7 +11,7 @@ router.get("/", (req, res, next) => {
 
 async function filterUsernames() {
   const userSet = new Set();
-  const users = await User.find({}).lean();
+  const users = await User.find({}).lean();;
   for (const user of users) {
     if (userSet.has(user.email)) {
       await userModel.deleteOne({ _id: user._id });

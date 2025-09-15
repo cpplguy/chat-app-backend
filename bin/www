@@ -141,7 +141,6 @@ io.on("connection", async (socket) => {
       console.log("Bad message, ignoring.");
       return;
     }
-
     const newMessage = new messageModel({
       email: email,
       text: escapeHtml(msg.trim().replace(/:bypass/gi, "")) || " ",
