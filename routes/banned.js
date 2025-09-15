@@ -1,4 +1,3 @@
-const userModel = require("../database/usermodel.js");
 const bannedIps = require("../database/bannedips.js");
 const crypto = require("crypto");
 const bannedAuthenticate = async (req, res, next) => {
