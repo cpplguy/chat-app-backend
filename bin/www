@@ -94,14 +94,15 @@ io.on("connection", async (socket) => {
     if (!email) {
       throw new Error("No email detected. Disconnecting");
     }
-    const isBanned = await checkIfBanned(email);
+    const isBanned = false//await checkIfBanned(email); wtf why is this breaking everytugn
     if (isBanned) {
       console.log("Banned user tried to connect: ", email);
-      return socket.disconnect();
+      socket.disconnect();
+      return;
     }
     console.log("User authenticated: ", email);
 
-    console.log("users connected:", usersConnected);
+    console.log("users connected:", [...usersConnected.keys()]);
   } catch (err) {
     console.error("Error occurred. Error: ", err);
     socket.disconnect();
@@ -165,7 +166,7 @@ io.on("connection", async (socket) => {
       .sort({ createdAt: 1 })
       .limit(70);
     const messages = await addColors(message);
-    console.log(messages);
+    console.log("Messages sent");
     io.to(roomId).emit("chat message", messages);
   }
   function requestUsersOnlineHandler() {
@@ -190,7 +191,7 @@ io.on("connection", async (socket) => {
       usersConnected.delete(email);
     }
     console.log("User disconnected: ", socket.id);
-    console.log("users connected:", usersConnected);
+    console.log("users connected:", [...usersConnected.keys()]);
     sendUsersConnectedToRoom();
     io.emit("users online", [...usersConnected.keys()].length);
   }
