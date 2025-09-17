@@ -60,7 +60,7 @@ router.post(
     const shavedName = info.name.trim().toLowerCase();
     const inDB = await User.findOne({ email: shavedName });
     if (inDB) {
-      res.sendStatus(409).json({ error: "User already exists" });
+      res.status(409).json({ error: "User already exists" });
       return;
     }
 
@@ -113,7 +113,7 @@ router.get("/getEverything", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { name, password } = req.body;
   if (!name || !password) {
-    return res.sendStatus(400);
+    return res.status(400).json({ error: "Name and password required" });
   }
   const formattedName = name.trim().toLowerCase();
   const inDB = await User.findOne({
