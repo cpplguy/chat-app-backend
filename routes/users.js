@@ -11,7 +11,7 @@ router.get("/", (req, res, next) => {
 
 async function filterUsernames() {
   const userSet = new Set();
-  const users = await User.find({}).lean();;
+  const users = await User.find({}).lean();
   for (const user of users) {
     if (userSet.has(user.email)) {
       await userModel.deleteOne({ _id: user._id });
@@ -55,12 +55,12 @@ router.post(
     }
     const info = req.body;
     if (!info.name) {
-      return res.status(400);
+      return res.status(400).json({ error: "No name provided" });
     }
     const shavedName = info.name.trim().toLowerCase();
     const inDB = await User.findOne({ email: shavedName });
     if (inDB) {
-      res.sendStatus(409);
+      res.sendStatus(409).json({ error: "User already exists" });
       return;
     }
 
@@ -124,7 +124,9 @@ router.post("/login", async (req, res) => {
   }
   const compare = await bcrypt.compare(password, inDB.password);
   if (!compare) {
-    return res.sendStatus(401);
+    return res
+      .sendStatus(401)
+      .json({ error: "Authentication: wrong password" });
   }
   inDB.ip = crypto.createHash("sha256").update(req.ip).digest("hex");
   await inDB.save();
