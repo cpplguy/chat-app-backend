@@ -14,7 +14,7 @@ async function filterUsernames() {
   const users = await User.find({}).lean();
   for (const user of users) {
     if (userSet.has(user.email)) {
-      await userModel.deleteOne({ _id: user._id });
+      await User.deleteOne({ _id: user._id });
       continue;
     }
     userSet.add(user.email);
