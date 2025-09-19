@@ -137,7 +137,7 @@ io.on("connection", async (socket) => {
     if (!roomId) return console.log("No roomId yet.");
     if (
       (!msg || msg.trim() === "" || msg.trim().length > 100) &&
-      !(/:bypass/i.test(msg) || msg.match(/image\((.*?)\)/i))
+      !((/:bypass/i.test(msg) && msg.length < 1000) || msg.match(/image\((.*?)\)/i))
     ) {
       console.log("Bad message, ignoring.");
       return;

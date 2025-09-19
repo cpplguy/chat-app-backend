@@ -51,6 +51,7 @@ router.delete("/users/delete", async (req, res) => {
 router.patch("/users/ban", async (req, res) => {
   const userToBan = req.body.userId;
   const bannedMessage = req.body.message || "No reason provided";
+  const unBanOrNot = bannedMessage.includes(":unban")
   if (!userToBan) {
     return res.status(400).json({ error: "Id is required" });
   }
@@ -59,7 +60,7 @@ router.patch("/users/ban", async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
   try {
-    if (user.banned) {
+    if (unBanOrNot) {
       user.banned = false;
       user.bannedReason = "";
       await user.save();
