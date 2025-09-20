@@ -89,7 +89,8 @@ io.on("connection", async (socket) => {
       return;
     }
     const decoded = jwt.verify(token, process.env.JWT);
-    socket.data.email = decoded.email;
+    const deviceEmoji = handshake.device === "mobile" ? "📱" : "💻";
+    socket.data.email = decoded.email + " "+ deviceEmoji + " ";
     email = socket.data.email;
     if (!email) {
       throw new Error("No email detected. Disconnecting");
