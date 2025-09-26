@@ -13,7 +13,7 @@ const authenticate = (req, res, next) => {
             req.user = decoded.email;
             req.token = token;
             req.isAdmin = req.user === "admin@admin.com";
-            const user = await Users.findOne({email:req.user})
+            const user = await Users.findOne({email:req.user});
             if(user.banned){
                 const reason = user.bannedReason
                 return res.status(403).json({ bannedReason: reason || "No reason given" })

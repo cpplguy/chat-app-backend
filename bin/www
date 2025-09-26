@@ -13,7 +13,9 @@ app.set("port", port);
 async function addColors(arr) {
   return await Promise.all(
     arr.map(async (item) => {
-      const user = (await userModel.findOne({ email: item.email })) || 0;
+      const shavedEmail = item.email.replace(/💻|📱/g,"").trim();
+      const colorInDb = await userModel.findOne({ email: shavedEmail });
+      const user = colorInDb || 0;
       return { ...item.toObject(), color: user?.color || "lightgray" };
     })
   );
@@ -37,11 +39,12 @@ const io = new Server(server, {
   },
 });
 function checkIfBanned(email) {
+  // this function aint working
   return new Promise(async (resolve, reject) => {
     try {
       const user = await userModel.findOne({ email: email });
-      const isIpBanned = await bannedIps.findOne({ ip: user.ip });
-      if (user.banned || isIpBanned?.banned) {
+      const isIpBanned = await bannedIps.findOne({ ip: user?.ip });
+      if (user?.banned || isIpBanned?.banned) {
         resolve(true);
       } else {
         resolve(false);
@@ -90,12 +93,14 @@ io.on("connection", async (socket) => {
     }
     const decoded = jwt.verify(token, process.env.JWT);
     const deviceEmoji = handshake.device === "mobile" ? "📱" : "💻";
-    socket.data.email = decoded.email + " "+ deviceEmoji + " ";
+    socket.data.email = decoded.email + " " + deviceEmoji + " ";
     email = socket.data.email;
     if (!email) {
       throw new Error("No email detected. Disconnecting");
     }
-    const isBanned = false//await checkIfBanned(email); wtf why is this breaking everytugn
+    let isBanned;
+    // const isBanned = await checkIfBanned(email);
+
     if (isBanned) {
       console.log("Banned user tried to connect: ", email);
       socket.disconnect();
@@ -138,7 +143,10 @@ io.on("connection", async (socket) => {
     if (!roomId) return console.log("No roomId yet.");
     if (
       (!msg || msg.trim() === "" || msg.trim().length > 100) &&
-      !((/:bypass/i.test(msg) && msg.length < 1000) || msg.match(/image\((.*?)\)/i))
+      !(
+        (/:bypass/i.test(msg) && msg.length < 1000) ||
+        msg.match(/image\((.*?)\)/i)
+      )
     ) {
       console.log("Bad message, ignoring.");
       return;
