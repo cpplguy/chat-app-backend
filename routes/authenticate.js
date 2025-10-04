@@ -15,6 +15,7 @@ const authenticate = (req, res, next) => {
             req.isAdmin = req.user === "admin@admin.com";
             const user = await Users.findOne({email:req.user});
             if(user.banned){
+                console.log("User is banned: ", user.email);
                 const reason = user.bannedReason
                 return res.status(403).json({ bannedReason: reason || "No reason given" })
             }

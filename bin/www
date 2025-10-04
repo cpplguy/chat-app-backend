@@ -13,7 +13,7 @@ app.set("port", port);
 async function addColors(arr) {
   return await Promise.all(
     arr.map(async (item) => {
-      const shavedEmail = item.email.replace(/💻|📱/g,"").trim();
+      const shavedEmail = item.email.replace(/💻|📱/g, "").trim();
       const colorInDb = await userModel.findOne({ email: shavedEmail });
       const user = colorInDb || 0;
       return { ...item.toObject(), color: user?.color || "lightgray" };
@@ -42,10 +42,10 @@ function checkIfBanned(email) {
   // this function aint working
   return new Promise(async (resolve, reject) => {
     try {
-      const user = await userModel.findOne({ email: email });
+      const user = await userModel.findOne({ email: email.replace(/💻|📱/g, "").trim() });
       const isIpBanned = await bannedIps.findOne({ ip: user?.ip });
       if (user?.banned || isIpBanned?.banned) {
-        resolve(true);
+        resolve({banned: true, reason: user?.bannedReason || isIpBanned?.reason || "No reason given"});
       } else {
         resolve(false);
       }
@@ -73,6 +73,17 @@ function sendUsersConnectedToRoom() {
 }
 
 io.on("connection", async (socket) => {
+  function isBanned(email){
+  return checkIfBanned(email).then((banned) => {
+      if (banned.banned) {
+        console.log("is banned");
+        socket.emit("is banned", banned);
+        socket.disconnect();
+        return;
+      }
+      console.log("is not banned");
+    }).catch(console.error);
+}
   // <validating user
   let email;
   try {
@@ -98,14 +109,9 @@ io.on("connection", async (socket) => {
     if (!email) {
       throw new Error("No email detected. Disconnecting");
     }
-    let isBanned;
-    // const isBanned = await checkIfBanned(email);
 
-    if (isBanned) {
-      console.log("Banned user tried to connect: ", email);
-      socket.disconnect();
-      return;
-    }
+    isBanned(email);
+
     console.log("User authenticated: ", email);
 
     console.log("users connected:", [...usersConnected.keys()]);
@@ -139,6 +145,7 @@ io.on("connection", async (socket) => {
     sendUsersConnectedToRoom();
   }
   async function chatMessageHandler(msg) {
+    isBanned(socket.data.email);
     const roomId = socket.data.roomId;
     if (!roomId) return console.log("No roomId yet.");
     if (
