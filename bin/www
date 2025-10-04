@@ -42,10 +42,15 @@ function checkIfBanned(email) {
   // this function aint working
   return new Promise(async (resolve, reject) => {
     try {
-      const user = await userModel.findOne({ email: email.replace(/💻|📱/g, "").trim() });
+      const user = await userModel.findOne({
+        email: email.replace(/💻|📱/g, "").trim(),
+      });
       const isIpBanned = await bannedIps.findOne({ ip: user?.ip });
       if (user?.banned || isIpBanned?.banned) {
-        resolve({banned: true, reason: user?.bannedReason || isIpBanned?.reason || "No reason given"});
+        resolve({
+          banned: true,
+          reason: user?.bannedReason || isIpBanned?.reason || "No reason given",
+        });
       } else {
         resolve(false);
       }
@@ -67,23 +72,25 @@ function sendUsersConnectedToRoom() {
       usersOnlineMap.get(idd).add(x);
     }
   }
-  for (let [x, y] of usersOnlineMap.entries()) {
-    io.to(x).emit("users connected", [...y]);
+  for (let [rmId, usrs] of usersOnlineMap.entries()) {
+    io.to(rmId).emit("users connected", [...usrs]);
   }
 }
 
 io.on("connection", async (socket) => {
-  function isBanned(email){
-  return checkIfBanned(email).then((banned) => {
-      if (banned.banned) {
-        console.log("is banned");
-        socket.emit("is banned", banned);
-        socket.disconnect();
-        return;
-      }
-      console.log("is not banned");
-    }).catch(console.error);
-}
+  function isBanned(email) {
+    return checkIfBanned(email)
+      .then((banned) => {
+        if (banned.banned) {
+          console.log("is banned");
+          socket.emit("is banned", banned);
+          socket.disconnect();
+          return;
+        }
+        console.log("is not banned");
+      })
+      .catch(console.error);
+  }
   // <validating user
   let email;
   try {
@@ -121,6 +128,16 @@ io.on("connection", async (socket) => {
     return;
   }
   //>
+  async function sendMessagesToRoom(roomId) {
+    if (!roomId) return console.log("No roomId yet.");
+    const message = await messageModel
+      .find({ roomId: roomId })
+      .sort({ createdAt: 1 })
+      .limit(70);
+    const messages = await addColors(message);
+    console.log("Messages sent");
+    io.to(roomId).emit("chat message", messages);
+  }
   async function joinRoomHandler(roomId) {
     roomId = String(roomId).toLowerCase();
     socket.join(roomId);
@@ -144,6 +161,7 @@ io.on("connection", async (socket) => {
     io.emit("users online", [...usersConnected.keys()].length);
     sendUsersConnectedToRoom();
   }
+
   async function chatMessageHandler(msg) {
     isBanned(socket.data.email);
     const roomId = socket.data.roomId;
@@ -177,13 +195,7 @@ io.on("connection", async (socket) => {
       console.log("Deleted old messages.");
     }
 
-    const message = await messageModel
-      .find({ roomId: roomId })
-      .sort({ createdAt: 1 })
-      .limit(70);
-    const messages = await addColors(message);
-    console.log("Messages sent");
-    io.to(roomId).emit("chat message", messages);
+    sendMessagesToRoom(roomId);
   }
   function requestUsersOnlineHandler() {
     const roomId = socket.data.roomId;
@@ -194,6 +206,19 @@ io.on("connection", async (socket) => {
         (usersConnected.get(item)?.roomId || new Set(["main"])).has(roomId)
       )
     );
+  }
+  async function deleteMessageHandler(id) {
+    const message = await messageModel.findById(id);
+    if (!message) return;
+    if (
+      message.email !== socket.data.email &&
+      socket.data.email.replace(/💻|📱/g, "").trim() !== "admin@admin.com"
+    )
+      return console.log("Not allowed to delete this message.");
+    await message.deleteOne();
+    const roomId = socket.data.roomId;
+    sendMessagesToRoom(roomId);
+    console.log("Message deleted");
   }
   function disconnectHandler() {
     socketCleanUp(socket);
@@ -216,11 +241,13 @@ io.on("connection", async (socket) => {
     socket.off("join room", joinRoomHandler);
     socket.off("chat message", chatMessageHandler);
     socket.off("request users connected", requestUsersOnlineHandler);
+    socket.off("delete message", deleteMessageHandler);
+    socket.off("disconnect", disconnectHandler);
   }
 
   socket.on("join room", joinRoomHandler);
 
-  //sends user info to the specific room
+  socket.on("delete message", deleteMessageHandler);
 
   socket.on("chat message", chatMessageHandler);
   socket.on("request users connected", requestUsersOnlineHandler);
