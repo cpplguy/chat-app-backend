@@ -27,11 +27,7 @@ router.get("/messages", async(req, res) => {
 })
 router.get("/users", async (req, res) => {
   try {
-    let users = await userModel.find({}).lean();
-    users = users.map((item) => {
-      const { password, ip = "", ...rest } = item;
-      return rest;
-    });
+    const users = await userModel.find({}).lean();
     return res.status(200).json(users);
   } catch (err) {
     console.error("Error fetching users: ", err);
