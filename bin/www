@@ -39,12 +39,12 @@ const io = new Server(server, {
   },
 });
 function checkIfBanned(email) {
-  // this function aint working
   return new Promise(async (resolve, reject) => {
     try {
       const user = await userModel.findOne({
         email: email.replace(/💻|📱/g, "").trim(),
       });
+      if(!user) resolve({error: "No user found"});
       const isIpBanned = await bannedIps.findOne({ ip: user?.ip });
       if (user?.banned || isIpBanned?.banned) {
         resolve({
@@ -81,6 +81,12 @@ io.on("connection", async (socket) => {
   function isBanned(email) {
     return checkIfBanned(email)
       .then((banned) => {
+        if(banned?.error) {
+          console.log(banned.error);
+          socket.emit("error", banned);
+          socket.disconnect();
+          return;
+        }
         if (banned.banned) {
           console.log("is banned");
           socket.emit("is banned", banned);
