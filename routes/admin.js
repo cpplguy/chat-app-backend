@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const router = express.Router();
 const userModel = require("../database/usermodel.js");
 const bannedIps = require("../database/bannedips.js");
+const chatMessages = require("../database/chatmodel.js");
 const authenticate = require("./authenticate.js");
 const adminAuthenticate = (req, res, next) => {
   if (!req.isAdmin) {
@@ -15,6 +16,15 @@ router.use(adminAuthenticate);
 router.get("/", (req, res) => {
   res.status(200).json({ message: "Admin authenticated" });
 });
+router.get("messages", async(req, res) => {
+  try{
+    const messages = await chatMessages.find({}).lean();
+    return res.status(200).json(messages);
+  }catch(err){
+    console.error("Error fetching messages: ", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+})
 router.get("/users", async (req, res) => {
   try {
     let users = await userModel.find({}).lean();
