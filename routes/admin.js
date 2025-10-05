@@ -16,7 +16,7 @@ router.use(adminAuthenticate);
 router.get("/", (req, res) => {
   res.status(200).json({ message: "Admin authenticated" });
 });
-router.get("messages", async(req, res) => {
+router.get("/messages", async(req, res) => {
   try{
     const messages = await chatMessages.find({}).lean();
     return res.status(200).json(messages);
