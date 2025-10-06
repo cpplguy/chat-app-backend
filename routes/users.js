@@ -48,7 +48,6 @@ router.post(
     .withMessage("Email is too long")
     .escape(),
   async (req, res) => {
-    console.log("Database: ", await User.find({}));
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -97,6 +96,7 @@ router.post(
     } catch (err) {
       console.error(err);
     }
+    console.log("user logged in");
   }
 );
 
