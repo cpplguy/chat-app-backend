@@ -125,7 +125,7 @@ router.post("/login", async (req, res) => {
   const compare = await bcrypt.compare(password, inDB.password);
   if (!compare) {
     return res
-      .sendStatus(401)
+      .status(401)
       .json({ error: "Authentication: wrong password" });
   }
   inDB.ip = crypto.createHash("sha256").update(req.ip).digest("hex");

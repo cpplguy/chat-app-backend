@@ -88,7 +88,7 @@ io.on("connection", async (socket) => {
           socket.disconnect();
           return;
         }
-        if (banned.banned) {
+        if (banned?.banned) {
           console.log("is banned");
           socket.emit("is banned", banned);
           socket.disconnect();
