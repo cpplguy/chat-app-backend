@@ -16,12 +16,12 @@ const adminRouter = require("./routes/admin.js");
 const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 const limit = rateLimit({
-  windowMs: 10 * 1000,
-  max: 10,
+  windowMs: 60 * 1000,
+  max: 2,
   handler: (req, res, next) => {
     res
       .status(429)
-      .json({ error: "Too many requests. Take a quick 10 second break!" });
+      .json({ error: "Too many requests. Wait a couple of minutes." });
   },
 });
 app.use((req, res, next) => {
