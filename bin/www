@@ -45,7 +45,7 @@ function checkIfBanned(email) {
       const user = await userModel.findOne({
         email: email.replace(/💻|📱/g, "").trim(),
       });
-      if(!user) resolve({error: "No user found"});
+      if (!user) resolve({ error: "No user found" });
       const isIpBanned = await bannedIps.findOne({ ip: user?.ip });
       if (user?.banned || isIpBanned?.banned) {
         resolve({
@@ -82,7 +82,7 @@ io.on("connection", async (socket) => {
   function isBanned(email) {
     return checkIfBanned(email)
       .then((banned) => {
-        if(banned?.error) {
+        if (banned?.error) {
           console.log(banned.error);
           socket.emit("error", banned);
           socket.disconnect();
@@ -217,15 +217,20 @@ io.on("connection", async (socket) => {
   async function deleteMessageHandler(id) {
     const message = await messageModel.findById(id);
     if (!message) return;
+    const shavedEmail = socket.data.email.replace(/💻|📱/g, "").trim();
     if (
-      message.email !== socket.data.email &&
-      socket.data.email.replace(/💻|📱/g, "").trim() !== "admin@admin.com"
-    )
-      return console.log("Not allowed to delete this message.");
+      message.email.replace(/💻|📱/g, "").trim() !== shavedEmail &&
+      shavedEmail !== "admin@admin.com"
+    ) {
+      return console.log(
+        socket.data.email,
+        "Not allowed to delete this message."
+      );
+    }
     await message.deleteOne();
     const roomId = socket.data.roomId;
     sendMessagesToRoom(roomId);
-    console.log("Message deleted");
+    console.log("Message deleted by", socket.data.email);
   }
   function disconnectHandler() {
     socketCleanUp(socket);
