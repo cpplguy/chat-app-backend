@@ -94,7 +94,7 @@ io.on("connection", async (socket) => {
           socket.disconnect();
           return;
         }
-        console.log("is not banned");
+        console.log("is not banned", socket.data.email);
       })
       .catch(console.error);
   }
@@ -142,7 +142,7 @@ io.on("connection", async (socket) => {
       .sort({ createdAt: 1 })
       .limit(70);
     const messages = await addColors(message);
-    console.log("Messages sent");
+    console.log("Messages sent by", socket.data.email, "to room:", roomId);
     io.to(roomId).emit("chat message", messages);
   }
   async function joinRoomHandler(roomId) {
