@@ -138,7 +138,7 @@ router.post("/login", async (req, res) => {
     .cookie("auth", token, {
       httpOnly: true,
       secure: process.env.STATUS === "development" ? false : true,
-      sameSite: /* process.env.STATUS === "development" ? "Lax" :*/ "none",
+      sameSite:  process.env.STATUS === "development" ? "Lax" : "none",
       maxAge: 1000 * 60 * 60 * 100, // 100 hours
       path: "/",
     })

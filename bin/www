@@ -140,9 +140,9 @@ io.on("connection", async (socket) => {
     const message = await messageModel
       .find({ roomId: roomId })
       .sort({ createdAt: 1 })
-      .limit(70);
+      .limit(100);
     const messages = await addColors(message);
-    console.log("Messages sent by", socket.data.email, "to room:", roomId);
+    console.log("messages sent to room:", roomId);
     io.to(roomId).emit("chat message", messages);
   }
   async function joinRoomHandler(roomId) {
@@ -162,7 +162,7 @@ io.on("connection", async (socket) => {
         await messageModel
           .find({ roomId: socket.data.roomId })
           .sort({ createdAt: 1 })
-          .limit(70)
+          .limit(100)
       )
     );
     io.emit("users online", [...usersConnected.keys()].length);
@@ -176,7 +176,7 @@ io.on("connection", async (socket) => {
     if (
       (!msg || msg.trim() === "" || msg.trim().length > 100) &&
       !(
-        (/:bypass/i.test(msg) && msg.length < 1000) ||
+        (/:bypass/i.test(msg) && msg.length < 5000) ||
         msg.match(/image\((.*?)\)/i)
       )
     ) {
@@ -201,6 +201,7 @@ io.on("connection", async (socket) => {
       });
       console.log("Deleted old messages.");
     }
+    console.log("Messages sent by", socket.data.email, "message:", msg);
 
     sendMessagesToRoom(roomId);
   }
@@ -218,8 +219,9 @@ io.on("connection", async (socket) => {
     const message = await messageModel.findById(id);
     if (!message) return;
     const shavedEmail = socket.data.email.replace(/💻|📱/g, "").trim();
+    const shavedUserEmail = message.email.replace(/💻|📱/g, "").trim();
     if (
-      message.email.replace(/💻|📱/g, "").trim() !== shavedEmail &&
+      shavedUserEmail !== shavedEmail &&
       shavedEmail !== "admin@admin.com"
     ) {
       return console.log(
@@ -230,7 +232,7 @@ io.on("connection", async (socket) => {
     await message.deleteOne();
     const roomId = socket.data.roomId;
     sendMessagesToRoom(roomId);
-    console.log("Message deleted by", socket.data.email);
+    console.log("Message deleted by", socket.data.email, "message user:", shavedUserEmail);
   }
   function disconnectHandler() {
     socketCleanUp(socket);
