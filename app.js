@@ -17,7 +17,7 @@ const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 const limit = rateLimit({
   windowMs: 60 * 1000,
-  max: 2,
+  max: 4,
   handler: (req, res, next) => {
     res
       .status(429)
@@ -25,6 +25,7 @@ const limit = rateLimit({
   },
 });
 app.use((req, res, next) => {
+  if(process.env.STATUS === "development")return next();
   if(!(["/admin", "/admin/"].includes(req.originalUrl)) && req.method !== "GET" && req.path !== "/api/auth"){
     return limit(req, res, next);
   }

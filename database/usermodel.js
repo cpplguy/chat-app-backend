@@ -12,6 +12,10 @@ const schema = new mongoose.Schema({
     type: String,
     default: "lightgray",
   },
+  image:{
+    type: String,
+    default: "none",
+  },
   ip:{
     type:String,
     default:"none",

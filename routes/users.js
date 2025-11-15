@@ -28,9 +28,9 @@ router.get("/getNames", async (req, res) => {
 router.delete("/logout", (req, res) => {
   try {
     res.clearCookie("auth", {
-      httpOnly: true,
+      httpOnly:true,
       secure: process.env.STATUS === "development" ? false : true,
-      sameSite: /*process.env.STATUS === "development" ? "Lax" :*/ "none",
+      sameSite: process.env.STATUS === "development" ? "Lax" : "none",
       path: "/",
     });
     return res.sendStatus(200);
@@ -145,4 +145,15 @@ router.post("/login", async (req, res) => {
     .status(200)
     .json({ user: formattedName, token: token });
 });
+router.post("/createProfile", async (req, res) => {
+  const { image, email } = req.body;
+  if (!image || !email) {
+    return res.status(400).json({ error: "Image and email required" });
+  }
+  const user = await User.findOne({email:email});
+  if(!user) return res.status(404).json({error: "User not found"});
+  user.image = image;
+  await user.save();
+  return res.status(201).json({message: "Profile image updated"});
+})
 module.exports = router;
