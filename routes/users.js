@@ -20,7 +20,18 @@ async function filterUsernames() {
     userSet.add(user.email);
   }
 }
-
+function changePreviousAccounts(previousAccounts, inDB){
+  if (
+    previousAccounts?.length > 0 &&
+    Array.isArray(previousAccounts) &&
+    previousAccounts.every((s) => typeof s === "string" && s.length < 255)
+  ) {
+    const sliced = previousAccounts.slice(0,20)
+    inDB.previousAccounts = [
+      ...new Set([...(sliced || []), ...inDB.previousAccounts]),
+    ];
+  }
+}
 router.get("/getNames", async (req, res) => {
   const names = await User.find({});
   res.json(names.map((item) => ({ name: item.name })));
@@ -28,14 +39,14 @@ router.get("/getNames", async (req, res) => {
 router.delete("/logout", (req, res) => {
   try {
     res.clearCookie("auth", {
-      httpOnly:true,
+      httpOnly: true,
       secure: process.env.STATUS === "development" ? false : true,
       sameSite: process.env.STATUS === "development" ? "Lax" : "none",
       path: "/",
     });
     return res.sendStatus(200);
   } catch (err) {
-    console.log(err);
+    console.log("error: ",err);
     return res.status(400).json({ error: err });
   }
 });
@@ -53,6 +64,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const info = req.body;
+    const previousAccounts = info.previousAccounts;
     if (!info.name) {
       return res.status(400).json({ error: "No name provided" });
     }
@@ -76,6 +88,7 @@ router.post(
             })`,
       ip: crypto.createHash("sha256").update(req.ip).digest("hex"),
     });
+   changePreviousAccounts(previousAccounts, user);
     try {
       const userSave = await user.save();
       console.log(userSave);
@@ -94,7 +107,8 @@ router.post(
         .status(201)
         .json({ user: shavedName, token: token });
     } catch (err) {
-      console.error(err);
+      console.error("error: ", err);
+      return res.status(500).json({ error: "Internal Server Error: " + err });
     }
     console.log("user logged in");
   }
@@ -111,7 +125,7 @@ router.get("/getEverything", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { name, password } = req.body;
+  const { name, password, previousAccounts } = req.body;
   if (!name || !password) {
     return res.status(400).json({ error: "Name and password required" });
   }
@@ -124,21 +138,22 @@ router.post("/login", async (req, res) => {
   }
   const compare = await bcrypt.compare(password, inDB.password);
   if (!compare) {
-    return res
-      .status(401)
-      .json({ error: "Authentication: wrong password" });
+    return res.status(401).json({ error: "Authentication: wrong password" });
   }
   inDB.ip = crypto.createHash("sha256").update(req.ip).digest("hex");
+  //replace
+  changePreviousAccounts(previousAccounts, inDB);
+  //
   await inDB.save();
   const token = jwt.sign({ email: formattedName }, process.env.JWT, {
     expiresIn: "100h",
   });
-  filterUsernames();
+  await filterUsernames();
   res
     .cookie("auth", token, {
       httpOnly: true,
       secure: process.env.STATUS === "development" ? false : true,
-      sameSite:  process.env.STATUS === "development" ? "Lax" : "none",
+      sameSite: process.env.STATUS === "development" ? "Lax" : "none",
       maxAge: 1000 * 60 * 60 * 100, // 100 hours
       path: "/",
     })
@@ -150,10 +165,10 @@ router.post("/createProfile", async (req, res) => {
   if (!image || !email) {
     return res.status(400).json({ error: "Image and email required" });
   }
-  const user = await User.findOne({email:email});
-  if(!user) return res.status(404).json({error: "User not found"});
+  const user = await User.findOne({ email: email });
+  if (!user) return res.status(404).json({ error: "User not found" });
   user.image = image;
   await user.save();
-  return res.status(201).json({message: "Profile image updated"});
-})
+  return res.status(201).json({ message: "Profile image updated" });
+});
 module.exports = router;

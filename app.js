@@ -47,7 +47,7 @@ app.use(express.json());
   DBConnect();
 //</Database and such>
 //<App setup>
-app.set("trust proxy", true);
+/*app.set("trust proxy", true);*/
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 app.use(logger("dev"));

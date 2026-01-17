@@ -27,6 +27,10 @@ const schema = new mongoose.Schema({
   bannedReason:{
     type:String,
     default: "No reason specified.",
+  },
+  previousAccounts:{
+    type: [String],
+    default: [],
   }
 });
 module.exports = mongoose.model("User", schema);
