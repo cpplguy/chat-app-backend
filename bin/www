@@ -128,7 +128,7 @@ io.on("connection", async (socket) => {
 
     console.log("User authenticated: ", email);
 
-    console.log("users connected:", [...usersConnected.keys()]);
+    console.log("users connected:", [...usersConnected.entries()]);
   } catch (err) {
     console.error("Error occurred. Error: ", err);
     socket.disconnect();
@@ -246,7 +246,7 @@ io.on("connection", async (socket) => {
       usersConnected.delete(email);
     }
     console.log("User disconnected: ", socket.id);
-    console.log("users connected:", [...usersConnected.keys()]);
+    console.log("users connected:", [...usersConnected.entries()]);
     sendUsersConnectedToRoom();
     io.emit("users online", [...usersConnected.keys()].length);
   }
