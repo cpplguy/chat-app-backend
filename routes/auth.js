@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 router.get("/", bannedAuthenticate, authenticate, (req, res) => {
   const token = req.token;
-  console.log("Authenticated user: ", req.user);
+  console.log("Authenticated user/user logged in: ", req.user);
   res
     .status(200)
     .json({ message: "Authenticated", user: req.user, token: token });

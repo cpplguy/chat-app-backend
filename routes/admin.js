@@ -14,6 +14,7 @@ const adminAuthenticate = (req, res, next) => {
 router.use(authenticate);
 router.use(adminAuthenticate);
 router.get("/", (req, res) => {
+  console.log("Admin opened dashboard: ", req.user);
   res.status(200).json({ message: "Admin authenticated" });
 });
 router.get("/messages", async(req, res) => {
@@ -47,7 +48,7 @@ router.delete("/users/delete", async (req, res) => {
 
   try {
     await userToDelete.deleteOne();
-    console.log("User deleted successfully: ", userToDelete.email);
+    console.log("User deleted successfully by admin: ", userToDelete.email);
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     console.error("Error deleting user: ", err);
@@ -70,11 +71,13 @@ router.patch("/users/ban", async (req, res) => {
       user.banned = false;
       user.bannedReason = "";
       await user.save();
+      console.log("User unbanned successfully by admin: ", user.email);
       return res.status(200).json({ message: "User unbanned successfully" });
     }
     user.banned = true;
     user.bannedReason = bannedMessage;
     await user.save();
+    console.log("User banned successfully by admin: ", user.email);
     return res.status(200).json({ message: "User banned successfully" });
   } catch (err) {
     console.error("Error banning user: ", err);
