@@ -222,7 +222,7 @@ io.on("connection", async (socket) => {
     const shavedUserEmail = message.email.replace(/💻|📱/g, "").trim();
     if (
       shavedUserEmail !== shavedEmail &&
-      shavedEmail !== "admin@admin.com"
+      ![...JSON.parse(process.env.ADMINS)].includes(shavedEmail)
     ) {
       return console.log(
         socket.data.email,
