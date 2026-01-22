@@ -1,8 +1,6 @@
 const bannedIps = require("../database/bannedips.js");
-const crypto = require("crypto");
 const bannedAuthenticate = async (req, res, next) => {
-  const hashedIp = crypto.createHash("sha256").update(req.ip).digest("hex");
-  const ipBanned = await bannedIps.findOne({ ip: hashedIp });
+  const ipBanned = await bannedIps.findOne({ ip: req.ip });
   if (ipBanned && ipBanned.banned) {
     const reasonn = ipBanned.bannedReason
     console.log(reasonn);
