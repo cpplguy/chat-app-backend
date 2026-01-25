@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bannedIps = require("../database/bannedips.js");
 const Users = require("../database/usermodel.js");
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     const banned = new bannedIps({
     ip: req.ip,
     banned:false
