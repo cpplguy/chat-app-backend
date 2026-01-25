@@ -1,12 +1,6 @@
 const jwt = require("jsonwebtoken");
-const bannedIps = require("../database/bannedips.js");
 const Users = require("../database/usermodel.js");
 const authenticate = async (req, res, next) => {
-    const banned = new bannedIps({
-    ip: req.ip,
-    banned:false
-  })
-  await banned.save()
     const token = req.cookies?.auth;
     if (!token){
        return res.status(401).json({error: "Unauthorized"});
