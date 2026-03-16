@@ -1,0 +1,119 @@
+// ============================================================
+//  ranks.js  —  Staff Rank System for Main Chat Page
+//  Drop this file in your project root and require/import it.
+// ============================================================
+
+const RANKS = {
+  // ── Special / Ownership ──────────────────────────────────
+  owner: {
+    label: "Owner",
+    color: "#FF4500",          // fiery red-orange
+    glow: "rgba(255,69,0,0.55)",
+    badge: "👑",
+    priority: 100,             // higher = shown first when stacking
+    cssClass: "rank-owner",
+  },
+
+  // ── Administration ───────────────────────────────────────
+  admin: {
+    label: "Admin",
+    color: "#FF2D55",          // vivid rose-red
+    glow: "rgba(255,45,85,0.5)",
+    badge: "🛡️",
+    priority: 90,
+    cssClass: "rank-admin",
+  },
+
+  // ── Moderation ───────────────────────────────────────────
+  "head-mod": {
+    label: "Head Mod",
+    color: "#FF9F0A",          // amber
+    glow: "rgba(255,159,10,0.5)",
+    badge: "⚡",
+    priority: 80,
+    cssClass: "rank-head-mod",
+  },
+  moderator: {
+    label: "Moderator",
+    color: "#30D158",          // mint green
+    glow: "rgba(48,209,88,0.45)",
+    badge: "🔨",
+    priority: 70,
+    cssClass: "rank-moderator",
+  },
+  "trial-mod": {
+    label: "Trial Mod",
+    color: "#34C759",
+    glow: "rgba(52,199,89,0.35)",
+    badge: "🔧",
+    priority: 65,
+    cssClass: "rank-trial-mod",
+  },
+
+  // ── Support / Helper ─────────────────────────────────────
+  helper: {
+    label: "Helper",
+    color: "#0A84FF",          // electric blue
+    glow: "rgba(10,132,255,0.45)",
+    badge: "💬",
+    priority: 50,
+    cssClass: "rank-helper",
+  },
+
+  // ── Donator / VIP ────────────────────────────────────────
+  vip: {
+    label: "VIP",
+    color: "#BF5AF2",          // purple
+    glow: "rgba(191,90,242,0.5)",
+    badge: "💎",
+    priority: 40,
+    cssClass: "rank-vip",
+  },
+  donator: {
+    label: "Donator",
+    color: "#AC8E68",          // gold-tan
+    glow: "rgba(172,142,104,0.4)",
+    badge: "⭐",
+    priority: 35,
+    cssClass: "rank-donator",
+  },
+
+  // ── Default (every registered user) ─────────────────────
+  member: {
+    label: "Member",
+    color: "#8E8E93",          // neutral grey
+    glow: "rgba(142,142,147,0.3)",
+    badge: "👤",
+    priority: 0,
+    cssClass: "rank-member",
+  },
+};
+
+// ── Helper: get rank object (falls back to member) ──────────
+function getRank(rankKey) {
+  return RANKS[rankKey] ?? RANKS.member;
+}
+
+// ── Helper: build the HTML badge string ─────────────────────
+// Usage: getRankBadgeHTML("admin")
+// Returns: <span class="rank-badge rank-admin">🛡️ Admin</span>
+function getRankBadgeHTML(rankKey) {
+  const rank = getRank(rankKey);
+  return `<span class="rank-badge ${rank.cssClass}" title="${rank.label}">${rank.badge} ${rank.label}</span>`;
+}
+
+// ── Helper: get username colour for chat name display ───────
+function getUsernameColor(rankKey) {
+  return getRank(rankKey).color;
+}
+
+// ── Helper: sort an array of users by rank priority ─────────
+// Expects objects like: { username, rank, ... }
+function sortByRank(users) {
+  return [...users].sort(
+    (a, b) => (getRank(b.rank).priority) - (getRank(a.rank).priority)
+  );
+}
+
+// ── Export (CommonJS — swap to ESM `export` if needed) ──────
+module.exports = { RANKS, getRank, getRankBadgeHTML, getUsernameColor, sortByRank };
