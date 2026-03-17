@@ -31,6 +31,10 @@ const schema = new mongoose.Schema({
   previousAccounts:{
     type: [String],
     default: [],
+  },
+  rank:{
+    type: String,
+    default: "member",
   }
 });
 module.exports = mongoose.model("User", schema);
