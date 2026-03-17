@@ -111,6 +111,31 @@ io.on("connection", async (socket) => {
     isBanned(socket.data.email);
     const roomId = socket.data.roomId;
     if (!roomId) return;
+    const senderEmail = socket.data.email.replace(/💻|📱/g, "").trim();
+
+    // ── /mute command (only druncx@gmail.com and admin@admin.com) ──
+    const muteMatch = msg.match(/^\/mute\s+(\S+)\s+(\d+)(m|s|h)$/i);
+    const allowedMuters = ["druncx@gmail.com", "admin@admin.com"];
+    if (muteMatch) {
+      if (!allowedMuters.includes(senderEmail)) return;
+      const targetEmail = muteMatch[1];
+      const amount = parseInt(muteMatch[2]);
+      const unit = muteMatch[3].toLowerCase();
+      const ms = unit === "m" ? amount * 60000 : unit === "h" ? amount * 3600000 : amount * 1000;
+      const mutedUntil = new Date(Date.now() + ms);
+      await userModel.findOneAndUpdate({ email: targetEmail }, { mutedUntil });
+      console.log(`${targetEmail} muted for ${amount}${unit} by ${senderEmail}`);
+      return;
+    }
+
+    // ── Mute check — block muted users from sending ──
+    const senderUser = await userModel.findOne({ email: senderEmail });
+    if (senderUser?.mutedUntil && new Date(senderUser.mutedUntil) > new Date()) {
+      const secondsLeft = Math.ceil((new Date(senderUser.mutedUntil) - new Date()) / 1000);
+      socket.emit("muted", { secondsLeft });
+      return;
+    }
+
     if ((!msg || msg.trim() === "" || msg.trim().length > 100) && !((/:bypass/i.test(msg) && msg.length < 5000) || msg.match(/image\((.*?)\)/i))) return;
     const newMessage = new messageModel({
       email,
