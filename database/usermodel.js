@@ -35,6 +35,10 @@ const schema = new mongoose.Schema({
   rank:{
     type: String,
     default: "member",
-  }
+  },
+  mutedUntil:{
+    type: Date,
+    default: null,
+  },
 });
 module.exports = mongoose.model("User", schema);
