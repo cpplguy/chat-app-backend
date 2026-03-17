@@ -115,7 +115,7 @@ io.on("connection", async (socket) => {
 
     // ── /mute command (only druncx@gmail.com and admin@admin.com) ──
     const muteMatch = msg.match(/^\/mute\s+(\S+)\s+(\d+)(m|s|h)$/i);
-    const allowedMuters = ["druncx@gmail.com", "admin@admin.com"];
+    const allowedMuters = process.env.ADMINS;
     if (muteMatch) {
       if (!allowedMuters.includes(senderEmail)) return;
       const targetEmail = muteMatch[1];
