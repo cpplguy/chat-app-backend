@@ -112,7 +112,7 @@ router.post("/users/ipban", async (req, res) => {
 router.patch("/users/rank", async (req, res) => {
   const { email, rank } = req.body;
   if (!email || !rank) return res.status(400).json({ error: "email and rank are required" });
-  const validRanks = ["owner", "admin", "moderator", "helper", "vip", "member"];
+  const validRanks = ["Founder", "Owner", "Admin", "Mod", "Donor", "Member"];
   if (!validRanks.includes(rank)) return res.status(400).json({ error: "Invalid rank" });
   try {
     const user = await userModel.findOneAndUpdate({ email }, { rank }, { new: true });
