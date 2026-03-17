@@ -37,7 +37,6 @@ router.get("/users", async (req, res) => {
 });
 router.delete("/users/delete", async (req, res) => {
   const usernameToDelete = req.body.userId;
-
   if (!usernameToDelete) {
     return res.status(400).json({ error: "UserId is required" });
   }
@@ -45,7 +44,6 @@ router.delete("/users/delete", async (req, res) => {
   if (!userToDelete) {
     return res.status(404).json({ error: "User not found" });
   }
-
   try {
     await userToDelete.deleteOne();
     console.log("User deleted successfully by admin: ", userToDelete.email);
@@ -94,7 +92,6 @@ router.post("/users/ipban", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     const isBanned = await bannedIps.findOne({ ip: user.ip });
-    // dont forget that i added ts
     if (isBanned) {
       if (unBanOrNot?.toLowerCase() !== "unban")
         return res.status(409).json({ error: "duplicate ip addresses" });
@@ -109,6 +106,19 @@ router.post("/users/ipban", async (req, res) => {
     await ipBan.save();
   } catch (err) {
     console.error("Error ip banning user: ", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+router.patch("/users/rank", async (req, res) => {
+  const { email, rank } = req.body;
+  if (!email || !rank) return res.status(400).json({ error: "email and rank are required" });
+  const validRanks = ["owner", "admin", "moderator", "helper", "vip", "member"];
+  if (!validRanks.includes(rank)) return res.status(400).json({ error: "Invalid rank" });
+  try {
+    const user = await userModel.findOneAndUpdate({ email }, { rank }, { new: true });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.status(200).json({ message: `Rank updated to ${rank}`, user });
+  } catch (err) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
