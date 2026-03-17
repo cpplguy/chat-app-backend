@@ -1,52 +1,40 @@
-require("dotenv").config();
-const app = require("../app");
-const debug = require("debug")("server:server");
-const http = require("http");
-const jwt = require("jsonwebtoken");
-const { Server } = require("socket.io");
-const messageModel = require("../database/chatmodel.js");
-const userModel = require("../database/usermodel.js");
-
-const bannedIps = require("../database/bannedips.js");
-const port = normalizePort(process.env.PORT || "8080");
-app.set("port", port);
-//functions
-async function addColors(arr) {
-  return await Promise.all(
-    arr.map(async (item) => {
-      const shavedEmail = item.email.replace(/💻|📱/g, "").trim();
-      const colorInDb = await userModel.findOne({ email: shavedEmail });
-      const user = colorInDb || 0;
-      return { ...item.toObject(), color: user?.color || "lightgray", image: user?.image || "none", rank: user?.rank || "member" };
-    })
-  );
-}
-function escapeHtml(str) {
-  if (typeof str !== "string") return str;
-
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST"],
-    credentials: true,
+const mongoose = require("mongoose");
+const schema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
   },
+  password: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+    default: "lightgray",
+  },
+  image:{
+    type: String,
+    default: "none",
+  },
+  ip:{
+    type:String,
+    default:"none",
+  },
+  banned: {
+    type: Boolean,
+    default: false,
+  },
+  bannedReason:{
+    type:String,
+    default: "No reason specified.",
+  },
+  previousAccounts:{
+    type: [String],
+    default: [],
+  },
+  rank:{
+    type: String,
+    default: "member",
+  }
 });
-function checkIfBanned(email) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const user = await userModel.findOne({
-        email: email.replace(/💻|📱/g, "").trim(),
-      });
-      if (!user) resolve({ error: "No user found" });
-      const isIpBanned = await bannedIps.findOne({ ip: user?.ip });
-      if (user?.banned || isIpBanned?.banned) {
-        resolve({
-          ban
+module.exports = mongoose.model("User", schema);
