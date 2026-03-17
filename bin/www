@@ -112,10 +112,22 @@ io.on("connection", async (socket) => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
     const senderEmail = socket.data.email.replace(/💻|📱/g, "").trim();
+    const allowedMuters = ["druncx@gmail.com", "admin@admin.com"];
 
-    // ── /mute command (only druncx@gmail.com and admin@admin.com) ──
+    // ── /unmute command ──
+    const unmuteMatch = msg.match(/^\/unmute\s+(\S+)$/i);
+    if (unmuteMatch) {
+      if (!allowedMuters.includes(senderEmail)) return;
+      const targetEmail = unmuteMatch[1];
+      await userModel.findOneAndUpdate({ email: targetEmail }, { mutedUntil: null });
+      const targetSocket = [...io.sockets.sockets.values()].find(s => s.data.email?.replace(/💻|📱/g, "").trim() === targetEmail);
+      if (targetSocket) targetSocket.emit("unmuted");
+      console.log(`${targetEmail} unmuted by ${senderEmail}`);
+      return;
+    }
+
+    // ── /mute command ──
     const muteMatch = msg.match(/^\/mute\s+(\S+)\s+(\d+)(m|s|h)$/i);
-    const allowedMuters = process.env.ADMINS;
     if (muteMatch) {
       if (!allowedMuters.includes(senderEmail)) return;
       const targetEmail = muteMatch[1];
@@ -124,6 +136,8 @@ io.on("connection", async (socket) => {
       const ms = unit === "m" ? amount * 60000 : unit === "h" ? amount * 3600000 : amount * 1000;
       const mutedUntil = new Date(Date.now() + ms);
       await userModel.findOneAndUpdate({ email: targetEmail }, { mutedUntil });
+      const targetSocket = [...io.sockets.sockets.values()].find(s => s.data.email?.replace(/💻|📱/g, "").trim() === targetEmail);
+      if (targetSocket) targetSocket.emit("muted", { secondsLeft: Math.ceil(ms / 1000) });
       console.log(`${targetEmail} muted for ${amount}${unit} by ${senderEmail}`);
       return;
     }
